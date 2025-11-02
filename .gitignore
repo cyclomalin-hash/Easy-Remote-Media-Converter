@@ -1,0 +1,61 @@
+# === Easy Remote Media Converter ===
+# Ignore system and temporary files
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Compiled binaries or archives
+*.exe
+*.bin
+*.tar
+*.gz
+*.zip
+*.7z
+
+# Media cache or test files
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.mp3
+*.flac
+*.wav
+*.jpg
+*.png
+*.webp
+
+# Python / scripts
+__pycache__/
+*.pyc
+
+# Docker / environment
+.env
+.env.*
+docker-compose.override.yml
+
+# IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# OS and editor backups
+*~
+*.bak
+*.old
+
+# Project-specific exclusions
+ffmpeg/
+bin/
+output/
+cache/
+temp/
+tmp/
