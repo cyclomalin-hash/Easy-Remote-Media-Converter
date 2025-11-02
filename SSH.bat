@@ -4,7 +4,7 @@ mode con: cols=160 lines=40
 :: VARIABLES D'ENVIRONNEMENT
 :: ============================
 set "patch=C:\Program Files (x86)\Putty 0.79\Putty 0.79 x64\plink.exe"
-set "key=C:\Data\Soft\Unraid\keys\tower.ppk"
+set "key=E:\Soft\Unraid\keys\tower.ppk"
 set "patch2=/mnt/user/scripts/"
 
 echo 1 720p Nvidia
