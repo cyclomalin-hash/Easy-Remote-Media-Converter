@@ -103,3 +103,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     process_directory(HOST_WORKDIR, recursive=args.subfolders)
+
