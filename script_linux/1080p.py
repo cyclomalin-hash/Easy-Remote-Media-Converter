@@ -6,14 +6,15 @@ import subprocess
 import sys
 import argparse
 
+# === Configuration générale ===
 HOST_WORKDIR = "/mnt/user/Torrent"
 FFMPEG_PATH = "/mnt/user/scripts/ffmpeg"
 IGNORE_DIRS = [".Recycle.Bin"]
 EXTS = (".mp4", ".mkv", ".avi", ".ts")
-SUFFIX_OUT = "_720p_CQ32_P6_nvidia"  # suffixe à ignorer et à ajouter
+SUFFIX_OUT = "_1080p_CQ32_P6_nvidia"
 
 
-def encode_file(src_path, dst_path, copy_subs=True):
+def encode_file(src_path, dst_path):
     """Lance FFmpeg et affiche tout en temps réel"""
     cmd = [
         FFMPEG_PATH,
@@ -21,24 +22,20 @@ def encode_file(src_path, dst_path, copy_subs=True):
         "-hwaccel", "cuda",
         "-vsync", "0",
         "-i", src_path,
-        "-vf", "hwupload_cuda,scale_cuda=w=1280:h=720:format=yuv420p:interp_algo=lanczos",
-        "-c:v", "hevc_nvenc",
+        "-vcodec", "hevc_nvenc",
         "-preset", "p6",
         "-rc", "vbr_hq",
-        "-cq", "32",
+        "-cq", "28",
         "-map", "0:v:0",
         "-map", "0:a",
+        "-map", "0:s?",
         "-c:a", "copy",
+        "-c:s", "copy",
+        dst_path,
+        "-y"
     ]
 
-    if copy_subs:
-        cmd += ["-map", "0:s?", "-c:s", "copy"]
-    else:
-        cmd += ["-sn"]
-
-    cmd += [dst_path, "-y"]
-
-    print(f"\n🎬 Encodage de {os.path.basename(src_path)}")
+    print(f"\n🎬 Encodage NVIDIA (1080p) : {os.path.basename(src_path)}")
     print("Commande exécutée :")
     print(" ".join(cmd))
     print("")
@@ -49,13 +46,13 @@ def encode_file(src_path, dst_path, copy_subs=True):
 
 
 def process_directory(path, recursive=False):
-    """Traite les fichiers du dossier (et sous-dossiers si demandé)"""
+    """Parcourt le dossier et encode les fichiers valides"""
     for root, dirs, files in os.walk(path):
         # Ignore certains dossiers
         dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
 
         if not recursive:
-            # Si on ne veut pas les sous-dossiers → on arrête ici
+            # Si non récursif → ne pas descendre plus bas
             dirs.clear()
 
         files.sort()
@@ -64,13 +61,12 @@ def process_directory(path, recursive=False):
             if not fl.endswith(EXTS):
                 continue
             if SUFFIX_OUT.lower() in fl:
-                # Ignore ses propres fichiers encodés
+                # Ignore ses propres fichiers
                 continue
 
-            base, _ = os.path.splitext(f)
             src_path = os.path.join(root, f)
-            dst_name = f"{base}{SUFFIX_OUT}.mkv"
-            dst_path = os.path.join(root, dst_name)
+            base, _ = os.path.splitext(f)
+            dst_path = os.path.join(root, f"{base}{SUFFIX_OUT}.mkv")
             lockfile = os.path.join(root, f"{f}.lock")
 
             if os.path.exists(dst_path):
@@ -83,12 +79,7 @@ def process_directory(path, recursive=False):
             open(lockfile, "w").close()
 
             try:
-                code = encode_file(src_path, dst_path, copy_subs=True)
-                if code != 0 and os.path.exists(dst_path):
-                    print("⚠️  Erreur détectée, suppression du fichier et relance sans sous-titres...")
-                    os.remove(dst_path)
-                    encode_file(src_path, dst_path, copy_subs=False)
-
+                encode_file(src_path, dst_path)
             except Exception as e:
                 print(f"❌ Erreur pendant l'encodage de {f} : {e}")
             finally:
@@ -97,7 +88,7 @@ def process_directory(path, recursive=False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Encode les vidéos avec ou sans sous-dossiers")
+    parser = argparse.ArgumentParser(description="Encode les vidéos en 1080p avec ou sans sous-répertoires")
     parser.add_argument("-sf", "--subfolders", action="store_true",
                         help="Inclure les sous-répertoires")
     args = parser.parse_args()
